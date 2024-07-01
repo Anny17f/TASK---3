@@ -7,13 +7,12 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 
 const tasks = [];
-const idCounter = 1;
+let idCounter = 1;
 
 app.post('/tasks', (req, res) => {
   const { title, body } = req.body;
-  const taskId = uuidv4(); 
   const newTask = {
-    id: idCounter ++,
+    id: idCounter++,  // Use a numeric counter or uuid
     title,
     body,
     status: 'pending', 
@@ -28,8 +27,8 @@ app.get('/tasks/', (req, res) => {
 
 // Get a task by ID
 app.get('/tasks/:id', (req, res) => {
-  const { taskId } = req.params;
-  const foundTask = tasks.find((task) => task.id === taskId);
+  const { id } = req.params;
+  const foundTask = tasks.find((task) => task.id === parseInt(id, 10)); // Convert id to integer
   if (!foundTask) {
     return res.status(404).json({ message: 'Task not found' });
   }
@@ -37,9 +36,9 @@ app.get('/tasks/:id', (req, res) => {
 });
 
 app.put('/tasks/:id', (req, res) => {
-  const { taskId } = req.params;
+  const { id } = req.params;
   const { title, body } = req.body;
-  const foundTask = tasks.find((task) => task.id === taskId);
+  const foundTask = tasks.find((task) => task.id === parseInt(id, 10)); // Convert id to integer
   if (!foundTask) {
     return res.status(404).json({ message: 'Task not found' });
   }
@@ -50,9 +49,9 @@ app.put('/tasks/:id', (req, res) => {
 
 // Update task status
 app.patch('/tasks/:id/status', (req, res) => {
-  const { taskId } = req.params;
+  const { id } = req.params;
   const { status } = req.body;
-  const foundTask = tasks.find((task) => task.id === taskId);
+  const foundTask = tasks.find((task) => task.id === parseInt(id, 10)); // Convert id to integer
   if (!foundTask) {
     return res.status(404).json({ message: 'Task not found' });
   }
@@ -60,17 +59,15 @@ app.patch('/tasks/:id/status', (req, res) => {
   res.json(foundTask);
 });
 
-
 app.delete('/tasks/:id', (req, res) => {
-  const { taskId } = req.params;
-  const taskIndex = tasks.findIndex((task) => task.id === taskId);
+  const { id } = req.params;
+  const taskIndex = tasks.findIndex((task) => task.id === parseInt(id, 10)); // Convert id to integer
   if (taskIndex === -1) {
     return res.status(404).json({ message: 'Task not found' });
   }
   tasks.splice(taskIndex, 1);
   res.json({ message: 'Task removed successfully' });
 });
-
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
