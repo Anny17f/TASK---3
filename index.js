@@ -1,66 +1,77 @@
 const express = require('express');
+const { v4: uuidv4 } = require('uuid'); 
+
 const app = express();
-const uuid = require('uuid');
+const PORT = process.env.PORT || 5000;
 
-// Initialize task array
-let tasks = [];
+app.use(express.json());
 
-// Create a new task
+const tasks = [];
+const idCounter = 1;
+
 app.post('/tasks', (req, res) => {
   const { title, body } = req.body;
+  const taskId = uuidv4(); 
   const newTask = {
-    id: uuid.v4(),
+    id: idCounter ++,
     title,
     body,
-    status: 'pending'
+    status: 'pending', 
   };
   tasks.push(newTask);
   res.status(201).json(newTask);
 });
 
-// Get all tasks
-app.get('/tasks', (req, res) => {
+app.get('/tasks/', (req, res) => {
   res.json(tasks);
 });
 
-// Get a single task by ID
+// Get a task by ID
 app.get('/tasks/:id', (req, res) => {
-  const id = req.params.id;
-  const task = tasks.find((task) => task.id === id);
-  if (!task) {
-    res.status(404).json({ error: 'Task not found' });
-  } else {
-    res.json(task);
+  const { taskId } = req.params;
+  const foundTask = tasks.find((task) => task.id === taskId);
+  if (!foundTask) {
+    return res.status(404).json({ message: 'Task not found' });
   }
+  res.json(foundTask);
 });
 
-// Update a task
-app.patch('/tasks/:id', (req, res) => {
-  const id = req.params.id;
-  const { title, body, status } = req.body;
-  const task = tasks.find((task) => task.id === id);
-  if (!task) {
-    res.status(404).json({ error: 'Task not found' });
-  } else {
-    task.title = title;
-    task.body = body;
-    task.status = status;
-    res.json(task);
+app.put('/tasks/:id', (req, res) => {
+  const { taskId } = req.params;
+  const { title, body } = req.body;
+  const foundTask = tasks.find((task) => task.id === taskId);
+  if (!foundTask) {
+    return res.status(404).json({ message: 'Task not found' });
   }
+  foundTask.title = title;
+  foundTask.body = body;
+  res.json(foundTask);
 });
 
-// Delete a task
+// Update task status
+app.patch('/tasks/:id/status', (req, res) => {
+  const { taskId } = req.params;
+  const { status } = req.body;
+  const foundTask = tasks.find((task) => task.id === taskId);
+  if (!foundTask) {
+    return res.status(404).json({ message: 'Task not found' });
+  }
+  foundTask.status = status;
+  res.json(foundTask);
+});
+
+
 app.delete('/tasks/:id', (req, res) => {
-  const id = req.params.id;
-  const index = tasks.findIndex((task) => task.id === id);
-  if (index === -1) {
-    res.status(404).json({ error: 'Task not found' });
-  } else {
-    tasks.splice(index, 1);
-    res.status(204).json({});
+  const { taskId } = req.params;
+  const taskIndex = tasks.findIndex((task) => task.id === taskId);
+  if (taskIndex === -1) {
+    return res.status(404).json({ message: 'Task not found' });
   }
+  tasks.splice(taskIndex, 1);
+  res.json({ message: 'Task removed successfully' });
 });
 
-app.listen(5000, () => {
-  console.log('Server listening on port 5000');
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
